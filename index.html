@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
+    <meta name="theme-color" content="#101116" />
+    <style>
+      html,body{margin:0;width:100%;height:100%;background:#101116;color:#f4f2ed;font-family:Arial,sans-serif}
+      #boot-fallback{position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;background:#101116;text-align:center;padding:28px}
+      .boot-mark{font-size:clamp(34px,7vw,68px);font-weight:900;letter-spacing:.06em}.boot-mark b{color:#ff755e}
+      #boot-message{max-width:760px;color:#ffad99;font:700 12px/1.7 monospace;letter-spacing:.08em}
+      #boot-hint{max-width:650px;color:#aab2bc;font-size:13px;line-height:1.7}
+      #boot-fallback:not(.boot-error) #boot-message{color:#aab2bc}
+    </style>
+    <meta name="description" content="STUPID RACING — an unreasonably chaotic 3D arcade racing game." />
+    <title>STUPID RACING</title>
+  </head>
+  <body>
+    <div id="boot-fallback" role="status" aria-live="polite">
+      <div class="boot-mark">STUPID <b>RACING</b></div>
+      <p id="boot-message">STARTING THE ENGINE…</p>
+    </div>
+    <div id="game-root">
+      <canvas id="game-canvas"></canvas>
+      <div id="ui-root"></div>
+    </div>
+    <script>
+      (() => {
+        const box = document.getElementById('boot-fallback');
+        const message = document.getElementById('boot-message');
+        const showError = (title, detail) => {
+          if (!box || document.body.dataset.gameReady === 'true') return;
+          box.classList.add('boot-error');
+          message.textContent = title + (detail ? ' — ' + detail : '');
+          let hint = document.getElementById('boot-hint');
+          if (!hint) {
+            hint = document.createElement('p');
+            hint.id = 'boot-hint';
+            hint.textContent = 'GitHub Pages must publish the Vite build from GitHub Actions. Check Settings → Pages, then the latest run in the Actions tab.';
+            box.appendChild(hint);
+          }
+        };
+        window.addEventListener('error', (event) => {
+          showError('GAME FILE FAILED TO LOAD', event.message || event.filename || 'Check the GitHub Pages build');
+        });
+        window.addEventListener('unhandledrejection', (event) => {
+          const reason = event.reason;
+          showError('GAME STARTUP FAILED', reason && reason.message ? reason.message : String(reason || 'Unknown error'));
+        });
+        window.__STUPID_RACING_READY = () => {
+          document.body.dataset.gameReady = 'true';
+          box?.remove();
+        };
+        window.setTimeout(() => {
+          if (document.body.dataset.gameReady !== 'true') {
+            showError('THE GAME BUNDLE DID NOT START', 'The repository may be publishing source files instead of the built dist folder.');
+          }
+        }, 14000);
+      })();
+    </script>
+    <script type="module" src="./src/main.js"></script>
+  </body>
+</html>
